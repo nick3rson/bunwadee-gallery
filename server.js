@@ -1,95 +1,85 @@
-const SECRET_PASSWORD = 'nick123'; // รหัสผ่านที่ใช้สำหรับอัพโหลดไฟล์
+const SECRET_PASSWORD = 'nick123'; // รหัสผ่านสำหรับอัปโหลด
 
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const heicConvert = require('heic-convert'); // <--- ย้ายมาอยู่บนสุด
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const app = express();
 
-app.use(express.static('public')); // โฟลเดอร์ frontend (html, css, js)
-app.use('/uploads', express.static('uploads')); // ให้เข้าถึงไฟล์อัพโหลดได้
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-// ตั้งค่า multer ให้ตั้งชื่อไฟล์จาก req.body.filename + timestamp
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    const originalExt = path.extname(file.originalname);
-    const customName = req.body.filename ? req.body.filename.replace(/\s+/g, '_') : 'file';
-    const uniqueSuffix = Date.now();
-    cb(null, `${customName}_${uniqueSuffix}${originalExt}`);
-  }
+// Configuration Cloudinary
+cloudinary.config({ 
+    cloud_name: 'dmps2yaqs', 
+    api_key: '269629145668394', 
+    api_secret: '<your_api_secret>' // ใส่ API Secret จริง
 });
 
+// ใช้ CloudinaryStorage กับ multer
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'bunwadee',           // โฟลเดอร์ใน Cloudinary
+    allowed_formats: ['jpg','jpeg','png','gif','heic']
+  },
+});
 const upload = multer({ storage });
+
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static('public'));
 
 // หน้าแรก
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(__dirname + '/public/index.html');
 });
 
-// API: ส่งรายการไฟล์ทั้งหมดใน uploads
-app.get('/images', (req, res) => {
-  fs.readdir('uploads', (err, files) => {
-    if (err) return res.status(500).json({ error: 'Cannot read files' });
-    res.json(files);
-  });
-});
+// เก็บ URL ของรูปทั้งหมดใน memory
+let imagesList = []; 
 
-// API: อัพโหลดไฟล์
-app.post('/upload', upload.single('image'), async (req, res) => {
+// อัปโหลดรูป
+app.post('/upload', upload.single('image'), (req, res) => {
   const password = req.body.password;
+
+  if (password !== SECRET_PASSWORD) {
+    return res.status(403).json({ error: 'รหัสผ่านไม่ถูกต้อง' });
+  }
 
   if (!req.file) {
     return res.status(400).json({ error: 'ไม่มีไฟล์อัปโหลด' });
   }
 
-  if (password !== SECRET_PASSWORD) {
-    fs.unlinkSync(req.file.path);
-    return res.status(403).json({ error: 'รหัสผ่านไม่ถูกต้อง' });
-  }
+  // ส่ง URL กลับไป และเก็บไว้ใน array
+  const url = req.file.path;      // Cloudinary URL
+  const filename = req.file.filename;
 
-  // แปลง HEIC เป็น JPEG ถ้าไฟล์ HEIC
-  const ext = path.extname(req.file.filename).toLowerCase();
-  if (ext === '.heic') {
-    const inputBuffer = fs.readFileSync(req.file.path);
-    const outputBuffer = await heicConvert({
-      buffer: inputBuffer,
-      format: 'JPEG',
-      quality: 1
-    });
+  imagesList.push({ url, filename });
 
-    const newFilename = req.file.filename.replace('.heic', '.jpg');
-    fs.writeFileSync(path.join('uploads', newFilename), outputBuffer);
-
-    fs.unlinkSync(req.file.path); // ลบ HEIC ต้นฉบับ
-    req.file.filename = newFilename; // อัปเดตชื่อไฟล์
-  }
-
-   res.json({ success: true, filename: req.file.filename });
+  res.json({ success: true, url, filename });
 });
 
-// API: ลบไฟล์
-app.delete('/delete', (req, res) => {
+// ดึงรายการรูปทั้งหมด
+app.get('/images', (req, res) => {
+  res.json(imagesList);
+});
+
+// ลบรูปจาก Cloudinary และ memory
+app.delete('/delete', async (req, res) => {
   const { filename, password } = req.body;
 
   if (password !== SECRET_PASSWORD) {
     return res.status(403).json({ error: 'รหัสผ่านไม่ถูกต้อง' });
   }
 
-  const filepath = path.join(__dirname, 'uploads', filename);
-  fs.unlink(filepath, (err) => {
-    if (err) return res.status(500).json({ error: 'ลบไฟล์ไม่สำเร็จ' });
+  // ลบจาก Cloudinary
+  try {
+    await cloudinary.uploader.destroy(`bunwadee/${filename}`);
+    // ลบจาก memory
+    imagesList = imagesList.filter(img => img.filename !== filename);
     res.json({ success: true });
-  });
+  } catch (err) {
+    res.status(500).json({ error: 'ลบไฟล์ไม่สำเร็จ' });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
