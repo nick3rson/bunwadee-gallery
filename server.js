@@ -8,9 +8,9 @@ const app = express();
 
 // Configuration Cloudinary
 cloudinary.config({ 
-    cloud_name: 'dmps2yaqs', 
-    api_key: '269629145668394', 
-    api_secret: '<your_api_secret>' // ใส่ API Secret จริง
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 // ใช้ CloudinaryStorage กับ multer
