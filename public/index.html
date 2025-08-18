@@ -75,24 +75,28 @@
     <div class="footer"></div>
   </div>
 
+
+
+
+</body>
 <script>
-// โหลดรูปทั้งหมด
+// โหลดรูปทั้งหมดจาก Cloudinary
 async function loadImages() {
   const res = await fetch('/images');
   const files = await res.json();
   const gallery = document.querySelector('.gallery');
   gallery.innerHTML = '';
 
-  files.forEach(filename => {
+  files.forEach(file => {
     const picDiv = document.createElement('div');
     picDiv.className = 'pic';
-    picDiv.setAttribute('data-name', filename.toLowerCase());
+    picDiv.setAttribute('data-name', file.filename.toLowerCase());
 
     picDiv.innerHTML = `
-      <img src="/uploads/${filename}" alt="${filename}">
+      <img src="${file.url}" alt="${file.filename}">
       <div class="overlay">
-        <button class="btn btn-danger" onclick="deleteImage('${filename}')">ลบ</button>
-        <a href="/uploads/${filename}" download class="btn">ดาวน์โหลด</a>
+        <button class="btn btn-danger" onclick="deleteImage('${file.filename}')">ลบ</button>
+        <a href="${file.url}" download class="btn">ดาวน์โหลด</a>
       </div>
     `;
     gallery.appendChild(picDiv);
@@ -127,44 +131,64 @@ searchInput.addEventListener('input', async () => {
   const gallery = document.querySelector('.gallery');
   gallery.innerHTML = '';
 
-  files.filter(filename => filename.toLowerCase().includes(keyword))
-       .forEach(filename => {
-         const picDiv = document.createElement('div');
-         picDiv.className = 'pic';
-         picDiv.setAttribute('data-name', filename.toLowerCase());
-         picDiv.innerHTML = `
-           <img src="/uploads/${filename}" alt="${filename}">
-           <div class="overlay">
-             <button class="btn btn-danger" onclick="deleteImage('${filename}')">ลบ</button>
-             <a href="/uploads/${filename}" download class="btn">ดาวน์โหลด</a>
-           </div>
-         `;
-         gallery.appendChild(picDiv);
-       });
+  files
+    .filter(file => file.filename.toLowerCase().includes(keyword))
+    .forEach(file => {
+      const picDiv = document.createElement('div');
+      picDiv.className = 'pic';
+      picDiv.setAttribute('data-name', file.filename.toLowerCase());
+
+      picDiv.innerHTML = `
+        <img src="${file.url}" alt="${file.filename}">
+        <div class="overlay">
+          <button class="btn btn-danger" onclick="deleteImage('${file.filename}')">ลบ</button>
+          <a href="${file.url}" download class="btn">ดาวน์โหลด</a>
+        </div>
+      `;
+      gallery.appendChild(picDiv);
+    });
 });
 
-// ลบไฟล์
-async function deleteImage(filename) {
+async function deleteImage(url) {
   const password = prompt('ใส่รหัสผ่านเพื่อลบรูป:');
   if (!password) return;
 
   try {
+    // ดึงชื่อไฟล์จาก URL
+    const parts = url.split('/');
+    const filename = parts[parts.length - 1]; // cbgexpfpx5dmkjufgrpz.jpg
+    const public_id = filename.replace(/\.[^/.]+$/, ''); // ตัด .jpg → cbgexpfpx5dmkjufgrpz
+
+    // ถ้าอยู่ใน folder bunwadee
+    const folderIndex = parts.findIndex(p => p === 'bunwadee');
+    if (folderIndex >= 0) {
+      const pathParts = parts.slice(folderIndex); // ["bunwadee","cbgexpfpx5dmkjufgrpz.jpg"]
+      public_id = pathParts.join('/').replace(/\.[^/.]+$/, ''); // bunwadee/cbgexpfpx5dmkjufgrpz
+    }
+
     const res = await fetch('/delete', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename, password })
+      body: JSON.stringify({ public_id, password })
     });
+
     const data = await res.json();
+    console.log(data);
 
     if (data.success) {
-      loadImages();
+      alert('ลบสำเร็จ!');
+      loadImages(); // โหลด gallery ใหม่
     } else {
       alert(data.error || 'ลบไม่สำเร็จ');
     }
-  } catch {
+  } catch (err) {
+    console.error(err);
     alert('เกิดข้อผิดพลาดในการลบ');
   }
 }
+
+
+
 
 // Upload form
 const uploadForm = document.getElementById('uploadForm');
@@ -205,6 +229,4 @@ uploadForm.querySelectorAll('input').forEach(input => {
 });
 </script>
 
-
-</body>
 </html>

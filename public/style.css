@@ -259,53 +259,36 @@ a i{
     color: white;
 }
 
-/* Gallery Container */
-.gallery-box {
-    display: flex;
-    justify-content: center;
-    padding: 20px;
-}
-
-/* Gallery Grid */
 .gallery {
-    display: flex;
-    
-    gap: 15px;
-    max-width: 1000px;
+    padding-left: 50px;
+    column-count: 4; /* จำนวนคอลัมน์ */
+    column-gap: 15px; /* ช่องว่างระหว่างคอลัมน์ */
 }
 
-/* Image Wrapper */
 .pic {
+    display: inline-block; /* ให้รับขนาดรูปจริง */
+    width: 100%; 
+    margin-bottom: 15px;
     position: relative;
     overflow: hidden;
     border-radius: 10px;
-    width: 100%;
-    height: auto;
-    transition: transform 0.3s ease-in-out;
-    
 }
 
 .pic img {
-    position: relative;
     width: 100%;
     height: auto;
+    display: block;
     border-radius: 10px;
-    transition: transform 0.3s ease-in-out;
-    
 }
 
-/* Hover Effect */
-.pic:hover {
-    transform: scale(1.05);
-}
-
-/* Overlay */
 .overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.4);
     opacity: 0;
     display: flex;
     flex-direction: column;
@@ -314,6 +297,22 @@ a i{
     gap: 10px;
     transition: opacity 0.3s ease-in-out;
 }
+
+.pic:hover .overlay {
+    opacity: 1;
+}
+
+.pic:hover img {
+    transform: scale(1.05);
+    transition: transform 0.3s ease-in-out;
+}
+
+
+/* แสดง overlay เมื่อ hover */
+.pic:hover .overlay {
+    opacity: 1;
+}
+
 
 .pic:hover .overlay {
     opacity: 1;
