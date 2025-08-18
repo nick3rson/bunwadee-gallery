@@ -80,11 +80,7 @@
 
 </body>
 <script>
-<<<<<<< HEAD
-// โหลดรูปทั้งหมดจาก Cloudinary
-=======
-// ✅ โหลดรูปจาก Cloudinary
->>>>>>> 8a99a503b748b8ab75c6489777775bf5c2707432
+
 async function loadImages() {
   const res = await fetch('/images'); // backend จะส่ง array ของ object { url, public_id }
   const files = await res.json();
@@ -94,21 +90,15 @@ async function loadImages() {
   files.forEach(file => {
     const picDiv = document.createElement('div');
     picDiv.className = 'pic';
-<<<<<<< HEAD
+
     picDiv.setAttribute('data-name', file.filename.toLowerCase());
 
     picDiv.innerHTML = `
       <img src="${file.url}" alt="${file.filename}">
       <div class="overlay">
         <button class="btn btn-danger" onclick="deleteImage('${file.filename}')">ลบ</button>
-=======
-    picDiv.setAttribute('data-name', file.public_id.toLowerCase());
 
-    picDiv.innerHTML = `
-      <img src="${file.url}" alt="${file.public_id}">
-      <div class="overlay">
-        <button class="btn btn-danger" onclick="deleteImage('${file.public_id}')">ลบ</button>
->>>>>>> 8a99a503b748b8ab75c6489777775bf5c2707432
+
         <a href="${file.url}" download class="btn">ดาวน์โหลด</a>
       </div>
     `;
@@ -144,7 +134,6 @@ searchInput.addEventListener('input', async () => {
   const gallery = document.querySelector('.gallery');
   gallery.innerHTML = '';
 
-<<<<<<< HEAD
   files
     .filter(file => file.filename.toLowerCase().includes(keyword))
     .forEach(file => {
@@ -164,26 +153,7 @@ searchInput.addEventListener('input', async () => {
 });
 
 async function deleteImage(url) {
-=======
-  files.filter(file => file.public_id.toLowerCase().includes(keyword))
-       .forEach(file => {
-         const picDiv = document.createElement('div');
-         picDiv.className = 'pic';
-         picDiv.setAttribute('data-name', file.public_id.toLowerCase());
-         picDiv.innerHTML = `
-           <img src="${file.url}" alt="${file.public_id}">
-           <div class="overlay">
-             <button class="btn btn-danger" onclick="deleteImage('${file.public_id}')">ลบ</button>
-             <a href="${file.url}" download class="btn">ดาวน์โหลด</a>
-           </div>
-         `;
-         gallery.appendChild(picDiv);
-       });
-});
 
-// ✅ ลบไฟล์บน Cloudinary
-async function deleteImage(public_id) {
->>>>>>> 8a99a503b748b8ab75c6489777775bf5c2707432
   const password = prompt('ใส่รหัสผ่านเพื่อลบรูป:');
   if (!password) return;
 
@@ -221,14 +191,9 @@ async function deleteImage(public_id) {
   }
 }
 
-<<<<<<< HEAD
-
 
 
 // Upload form
-=======
-// ✅ Upload form
->>>>>>> 8a99a503b748b8ab75c6489777775bf5c2707432
 const uploadForm = document.getElementById('uploadForm');
 
 async function handleUpload(e) {
@@ -263,9 +228,4 @@ uploadForm.querySelectorAll('input').forEach(input => {
   });
 });
 </script>
-
-<<<<<<< HEAD
-=======
-</body>
->>>>>>> 8a99a503b748b8ab75c6489777775bf5c2707432
 </html>

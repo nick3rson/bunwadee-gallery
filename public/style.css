@@ -260,7 +260,7 @@ a i{
 }
 
 .gallery {
-    padding-left: 50px;
+    padding: 50px;
     column-count: 4; /* จำนวนคอลัมน์ */
     column-gap: 15px; /* ช่องว่างระหว่างคอลัมน์ */
 }
@@ -397,4 +397,91 @@ a i{
   border-radius: 5px;
   border: 1px solid #ccc;
   margin-bottom: 15px;
+}
+
+
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: row;
+        height: auto;
+    }
+    .content .header {
+        flex-direction: row;
+        align-items: center;
+        padding: 10px;
+    }
+
+    .navbar {
+        flex-direction: row;
+        width: 100%;
+        height: 60px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        padding: 0 10px;
+    }
+
+    ul {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    li, .setbut {
+        height: 40px;
+        width: 40px;
+        font-size: 16px;
+    }
+
+    .content {
+        padding-left: 0;
+        margin-top: 40px;
+        gap: 10px;
+    }
+
+    .gallery {
+        padding: 10px;
+        column-count: 2;
+        column-gap: 10px;
+    }
+
+    .modal-content {
+        width: 90vw;
+        margin: 30% auto;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+     .content .header {
+        flex-direction: row;
+        align-items: center;
+        padding: 10px;
+    }
+    .navbar {
+        height: 50px;
+        padding: 0 5px;
+    }
+
+    ul img {
+        width: 32px;
+        height: 32px;
+    }
+
+    li, .setbut {
+        height: 32px;
+        width: 32px;
+        font-size: 14px;
+    }
+
+    .gallery {
+        column-count: 1;
+        padding: 5px;
+    }
+
+    .modal-content {
+        width: 98vw;
+        margin: 40% auto;
+        padding: 5px;
+    }
 }
