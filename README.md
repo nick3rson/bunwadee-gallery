@@ -14,9 +14,8 @@
 ---
 
 ## 📸 Screenshot / รูปตัวอย่าง
-![1000030374](https://github.com/user-attachments/assets/835c998d-e436-45ac-a2d9-a17a4611048d)
-![1000030376](https://github.com/user-attachments/assets/24db19eb-93c6-4c06-845c-7e7bec23c3b2)
->
+<img src="https://github.com/user-attachments/assets/24db19eb-93c6-4c06-845c-7e7bec23c3b2" alt="Screenshot 1" width="200"/>
+<img src="https://github.com/user-attachments/assets/835c998d-e436-45ac-a2d9-a17a4611048d" alt="Screenshot 1" width="200"/>
 
 > 💡 เปลี่ยนลิงก์รูปเป็น URL ของรูปจริงที่คุณอัปโหลดไว้ใน repository หรือบนเว็บ
 
