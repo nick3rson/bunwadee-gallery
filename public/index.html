@@ -94,7 +94,7 @@ async function loadImages() {
     picDiv.setAttribute('data-name', file.filename.toLowerCase());
 
     picDiv.innerHTML = `
-      <img src="${file.url}" alt="${file.filename}">
+      <img src="${file.url}" alt="${file.filename}" loading="lazy">
       <div class="overlay">
         <button class="btn btn-danger" onclick="deleteImage('${file.filename}')">ลบ</button>
 
