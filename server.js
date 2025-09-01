@@ -1,4 +1,4 @@
-const SECRET_PASSWORD = 'nick123';
+const SECRET_PASSWORD = '';
 
 const express = require('express');
 const multer = require('multer');
