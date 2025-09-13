@@ -203,6 +203,10 @@ const uploadForm = document.getElementById('uploadForm');
 async function handleUpload(e) {
   e.preventDefault();
 
+  // ✅ ปิด modal และ reset ฟอร์มทันทีที่กดส่ง
+  closeModal();
+  uploadForm.reset();
+
   const formData = new FormData(uploadForm);
 
   try {
@@ -210,9 +214,6 @@ async function handleUpload(e) {
     const data = await res.json();
 
     if (res.ok && data.success) {  
-      uploadForm.reset();  
-      closeModal();  
-
       Swal.fire({
         title: '✅ อัปโหลดเสร็จแล้ว!',
         text: 'ไฟล์ถูกอัปโหลดเรียบร้อย',
@@ -252,6 +253,7 @@ uploadForm.querySelectorAll('input').forEach(input => {
     }
   });
 });
+
 </script>
 
 </html>
