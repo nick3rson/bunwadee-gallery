@@ -197,62 +197,78 @@ async function deleteImage(url) {
   }
 }
 
-// Upload form
 const uploadForm = document.getElementById('uploadForm');
+const submitBtn = uploadForm.querySelector('button[type="submit"]');
 
 async function handleUpload(e) {
   e.preventDefault();
 
-  // ✅ ปิด modal และ reset ฟอร์มทันทีที่กดส่ง
-  closeModal();
-  uploadForm.reset();
-
+  // สร้าง FormData จากฟอร์มก่อนเลย (สำคัญ)
   const formData = new FormData(uploadForm);
+
+  // (ถ้าต้องการ debug ชั่วคราว) ตรวจว่ามี field อะไรส่งไปบ้าง
+  // console.log('--- FormData entries ---');
+  // for (const [k, v] of formData.entries()) {
+  //   console.log(k, v instanceof File ? v.name : v);
+  // }
+
+  // ปิด modal ทันที (ตามที่ต้องการ) แต่ยังไม่ reset ฟอร์ม
+  closeModal();
+
+  // ป้องกันกดซ้ำ
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'กำลังอัปโหลด...';
+  }
 
   try {
     const res = await fetch('/upload', { method: 'POST', body: formData });
-    const data = await res.json();
 
-    if (res.ok && data.success) {  
+    // พยายามแปลงเป็น JSON (บางครั้ง backend อาจไม่ตอบ JSON)
+    let data = {};
+    try { data = await res.json(); } catch (err) { /* non-json response */ }
+
+    if (res.ok && data.success) {
+      // สำเร็จ: รีเซ็ตฟอร์มได้ปลอดภัย
+      uploadForm.reset();
+
       Swal.fire({
         title: '✅ อัปโหลดเสร็จแล้ว!',
         text: 'ไฟล์ถูกอัปโหลดเรียบร้อย',
         icon: 'success',
-        confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#3085d6'
+        confirmButtonText: 'ตกลง'
       }).then(() => {
-        loadImages(); 
+        loadImages();
       });
-
-    } else {  
+    } else {
+      // ไม่สำเร็จ: เปิด modal กลับ เพื่อให้ user แก้รหัสผ่าน/ลองใหม่
       Swal.fire({
         title: '❌ อัปโหลดไม่สำเร็จ',
-        text: data.error || 'เกิดข้อผิดพลาด',
+        text: data.error || 'รหัสผ่านไม่ถูกต้องหรือเกิดข้อผิดพลาด',
         icon: 'error',
         confirmButtonText: 'ลองอีกครั้ง'
+      }).then(() => {
+        openModal();
       });
     }
 
-  } catch {
+  } catch (err) {
+    console.error('Upload error:', err);
     Swal.fire({
       title: '⚠️ มีปัญหา',
-      text: 'รหัสผ่านไม่ถูกต้องหรือเกิดข้อผิดพลาดในการอัปโหลด',
+      text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่',
       icon: 'warning',
       confirmButtonText: 'ตกลง'
-    });
+    }).then(() => openModal());
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'อัพโหลด';
+    }
   }
 }
 
 uploadForm.addEventListener('submit', handleUpload);
-
-uploadForm.querySelectorAll('input').forEach(input => {
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleUpload(new Event('submit', { bubbles: true, cancelable: true }));
-    }
-  });
-});
 
 </script>
 
