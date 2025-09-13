@@ -14,6 +14,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Winky+Sans:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
@@ -75,12 +80,7 @@
     <div class="footer"></div>
   </div>
 
-
-
-
-</body>
 <script>
-
 async function loadImages() {
   const res = await fetch('/images'); // backend จะส่ง array ของ object { url, public_id }
   const files = await res.json();
@@ -97,12 +97,167 @@ async function loadImages() {
       <img src="${file.url}" alt="${file.filename}" loading="lazy">
       <div class="overlay">
         <button class="btn btn-danger" onclick="deleteImage('${file.filename}')">ลบ</button>
-
-
         <a href="${file.url}" download class="btn">ดาวน์โหลด</a>
       </div>
     `;
     gallery.appendChild(picDiv);
+  });
+}
+
+// เรียกตอนโหลดหน้า
+window.addEventListener('DOMContentLoaded', loadImages);
+
+// เปิด modal
+function openModal() {
+  document.getElementById('uploadModal').style.display = 'flex';
+}
+
+// ปิด modal
+function closeModal() {
+  document.getElementById('uploadModal').style.display = 'none';
+}
+
+// ปิด modal เมื่อคลิกนอกกล่อง
+window.addEventListener('click', (event) => {
+  const modal = document.getElementById('uploadModal');
+  if (event.target === modal) modal.style.display = 'none';
+});
+
+// Search
+const searchInput = document.querySelector('.search-box');
+searchInput.addEventListener('input', async () => {
+  const keyword = searchInput.value.toLowerCase();
+  const res = await fetch('/images');
+  const files = await res.json();
+  const gallery = document.querySelector('.gallery');
+  gallery.innerHTML = '';
+
+  files
+    .filter(file => file.filename.toLowerCase().includes(keyword))
+    .forEach(file => {
+      const picDiv = document.createElement('div');
+      picDiv.className = 'pic';
+      picDiv.setAttribute('data-name', file.filename.toLowerCase());
+
+      picDiv.innerHTML = `
+        <img src="${file.url}" alt="${file.filename}">
+        <div class="overlay">
+          <button class="btn btn-danger" onclick="deleteImage('${file.filename}')">ลบ</button>
+          <a href="${file.url}" download class="btn">ดาวน์โหลด</a>
+        </div>
+      `;
+      gallery.appendChild(picDiv);
+    });
+});
+
+async function deleteImage(url) {
+  const password = prompt('ใส่รหัสผ่านเพื่อลบรูป:');
+  if (!password) return;
+
+  try {
+    const parts = url.split('/');
+    const filename = parts[parts.length - 1];
+    let public_id = filename.replace(/\.[^/.]+$/, '');
+
+    const folderIndex = parts.findIndex(p => p === 'bunwadee');
+    if (folderIndex >= 0) {
+      const pathParts = parts.slice(folderIndex);
+      public_id = pathParts.join('/').replace(/\.[^/.]+$/, '');
+    }
+
+    const res = await fetch('/delete', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ public_id, password })
+    });
+
+    const data = await res.json();
+    console.log(data);
+
+    if (data.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'ลบสำเร็จ!',
+        showConfirmButton: false,
+        timer: 1500
+      });
+      loadImages();
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'ลบไม่สำเร็จ',
+        text: data.error || 'ลองใหม่อีกครั้ง'
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    Swal.fire({
+      icon: 'error',
+      title: 'เกิดข้อผิดพลาด',
+      text: 'ไม่สามารถลบได้'
+    });
+  }
+}
+
+// Upload form
+const uploadForm = document.getElementById('uploadForm');
+
+async function handleUpload(e) {
+  e.preventDefault();
+
+  const formData = new FormData(uploadForm);
+
+  try {
+    const res = await fetch('/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      loadImages();
+      uploadForm.reset();
+      closeModal();
+
+      Swal.fire({
+        icon: 'success',
+        title: 'อัพโหลดสำเร็จ!',
+        showConfirmButton: false,
+        timer: 1500,
+        didOpen: () => {
+          confetti({
+            particleCount: 120,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        }
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'อัพโหลดไม่สำเร็จ',
+        text: data.error || 'ลองใหม่อีกครั้ง'
+      });
+    }
+  } catch {
+    Swal.fire({
+      icon: 'error',
+      title: 'เกิดข้อผิดพลาด',
+      text: 'รหัสผ่านไม่ถูกต้องหรือเกิดข้อผิดพลาดในการอัพโหลด'
+    });
+  }
+}
+
+uploadForm.addEventListener('submit', handleUpload);
+
+uploadForm.querySelectorAll('input').forEach(input => {
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleUpload(new Event('submit', { bubbles: true, cancelable: true }));
+    }
+  });
+});
+</script>
+</body>
+</html>    gallery.appendChild(picDiv);
   });
 }
 
